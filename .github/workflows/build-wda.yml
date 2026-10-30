@@ -1,0 +1,25 @@
+name: Build WDA ipa
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build unsigned
+        run: |
+          xcodebuild clean build-for-testing \
+            -project WebDriverAgent.xcodeproj \
+            -scheme WebDriverAgentRunner \
+            -destination generic/platform=iOS \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Package ipa
+        run: |
+          cd build/Build/Products/Debug-iphoneos
+          mkdir Payload
+          cp -r WebDriverAgentRunner-Runner.app Payload/
+          zip -r WebDriverAgentRunner.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WebDriverAgentRunner-ipa
+          path: build/Build/Products/Debug-iphoneos/WebDriverAgentRunner.ipa
